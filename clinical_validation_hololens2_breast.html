@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Clinical Validation — AR Surgical Planning · HoloLens2 + Breast Phantom</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #f7f5f2;
+  --surface: #ffffff;
+  --border: #e0dbd3;
+  --border-strong: #c8c0b5;
+  --text: #1a1714;
+  --text-sub: #6b6560;
+  --text-hint: #9e9891;
+  --accent: #1a4a6b;
+  --accent-light: #e8f0f6;
+  --s1-bg: #fdf0ef; --s1-border: #e07a76; --s1-text: #7a1f1c;
+  --s2-bg: #fef4e6; --s2-border: #d4922a; --s2-text: #7a4e10;
+  --s3-bg: #f4f3ef; --s3-border: #9e9580; --s3-text: #4a4640;
+  --s4-bg: #edf7f2; --s4-border: #3aaa72; --s4-text: #0f5c3a;
+  --s5-bg: #e8f2fb; --s5-border: #3a7ec4; --s5-text: #0d3f6e;
+  --radius: 8px;
+  --radius-lg: 14px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; line-height: 1.6; }
+.page { max-width: 860px; margin: 0 auto; padding: 48px 32px 100px; }
+
+.doc-header { border-bottom: 2px solid var(--text); padding-bottom: 24px; margin-bottom: 36px; }
+.doc-header .kicker { font-size: 11px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-sub); margin-bottom: 8px; }
+.doc-header h1 { font-family: 'DM Serif Display', serif; font-size: 32px; font-weight: 400; color: var(--text); line-height: 1.2; margin-bottom: 6px; }
+.doc-header .subtitle { font-size: 14px; color: var(--text-sub); }
+
+.meta-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-bottom: 36px; padding: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.meta-field label { display: block; font-size: 10px; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: var(--text-hint); margin-bottom: 5px; }
+.meta-field input, .meta-field select { width: 100%; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 7px 10px; outline: none; transition: border-color 0.15s; }
+.meta-field input:focus, .meta-field select:focus { border-color: var(--accent); }
+
+.legend { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-bottom: 28px; font-size: 12px; color: var(--text-sub); }
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-pip { width: 20px; height: 20px; border-radius: 5px; border: 1px solid; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; }
+.lp1 { background: var(--s1-bg); border-color: var(--s1-border); color: var(--s1-text); }
+.lp2 { background: var(--s2-bg); border-color: var(--s2-border); color: var(--s2-text); }
+.lp3 { background: var(--s3-bg); border-color: var(--s3-border); color: var(--s3-text); }
+.lp4 { background: var(--s4-bg); border-color: var(--s4-border); color: var(--s4-text); }
+.lp5 { background: var(--s5-bg); border-color: var(--s5-border); color: var(--s5-text); }
+
+.cat-block { margin-bottom: 32px; }
+.cat-title { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.cat-badge { width: 26px; height: 26px; border-radius: 6px; font-size: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.badge-a { background: #ddeaf5; color: #0d3f6e; }
+.badge-b { background: #dff2ea; color: #0a4a2e; }
+.badge-c { background: #ede9f8; color: #2f1f6a; }
+.badge-d { background: #fde8df; color: #6b2612; }
+.badge-e { background: #fff3db; color: #5c3a08; }
+.cat-title h2 { font-size: 13px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-sub); }
+
+.q-row { display: grid; grid-template-columns: 28px 1fr auto; gap: 12px; align-items: start; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.q-row:last-child { border-bottom: none; }
+.q-num { font-size: 11px; font-weight: 500; color: var(--text-hint); padding-top: 2px; }
+.q-text { font-size: 14px; color: var(--text); line-height: 1.5; padding-top: 1px; }
+.score-group { display: flex; gap: 3px; flex-shrink: 0; }
+.score-btn { width: 32px; height: 32px; border-radius: 7px; border: 1px solid var(--border); background: var(--surface); color: var(--text-sub); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.12s; }
+.score-btn:hover { border-color: var(--border-strong); color: var(--text); }
+.score-btn.sel-1 { background: var(--s1-bg); border-color: var(--s1-border); color: var(--s1-text); }
+.score-btn.sel-2 { background: var(--s2-bg); border-color: var(--s2-border); color: var(--s2-text); }
+.score-btn.sel-3 { background: var(--s3-bg); border-color: var(--s3-border); color: var(--s3-text); }
+.score-btn.sel-4 { background: var(--s4-bg); border-color: var(--s4-border); color: var(--s4-text); }
+.score-btn.sel-5 { background: var(--s5-bg); border-color: var(--s5-border); color: var(--s5-text); }
+
+.comments-block { margin-top: 36px; padding: 20px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.comments-block h3 { font-size: 13px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-sub); margin-bottom: 4px; }
+.optional-tag { font-size: 11px; color: var(--text-hint); margin-bottom: 12px; }
+.comments-block textarea { width: 100%; font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text); background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; resize: vertical; min-height: 110px; outline: none; transition: border-color 0.15s; line-height: 1.6; }
+.comments-block textarea:focus { border-color: var(--accent); }
+
+.summary-bar { position: sticky; bottom: 0; background: var(--surface); border-top: 1px solid var(--border); padding: 14px 20px; display: flex; align-items: center; gap: 28px; margin-top: 40px; border-radius: var(--radius-lg) var(--radius-lg) 0 0; box-shadow: 0 -4px 20px rgba(0,0,0,0.06); flex-wrap: wrap; }
+.sum-item { display: flex; flex-direction: column; gap: 1px; }
+.sum-label { font-size: 10px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-hint); }
+.sum-val { font-size: 20px; font-weight: 400; font-family: 'DM Serif Display', serif; color: var(--text); }
+.progress-wrap { flex: 1; min-width: 120px; }
+.progress-bar-bg { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+.progress-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; width: 0%; transition: width 0.3s ease; }
+.btn-export { margin-left: auto; display: flex; gap: 8px; }
+.btn { padding: 9px 18px; border-radius: var(--radius); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: all 0.15s; }
+.btn-primary { background: var(--accent); color: #ffffff; border: 1px solid var(--accent); }
+.btn-primary:hover { background: #153d59; }
+.btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+.btn-secondary:hover { border-color: var(--border-strong); }
+
+@media print {
+  .summary-bar { position: static; box-shadow: none; }
+  .btn-export { display: none; }
+  .score-btn { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+@media (max-width: 600px) {
+  .page { padding: 24px 16px 80px; }
+  .q-row { grid-template-columns: 24px 1fr; }
+  .score-group { grid-column: 2; }
+  .score-btn { width: 28px; height: 28px; font-size: 12px; }
+  .doc-header h1 { font-size: 24px; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="doc-header">
+    <div class="kicker">First Clinical Assessment · Augmented Reality Surgical Planning</div>
+    <h1>Clinical Validation —<br>AR Surgical Planning with HoloLens 2</h1>
+    <div class="subtitle">3D model fusion with breast phantom · Expert surgeon user test · Likert scale 1–5</div>
+  </div>
+
+  <div class="meta-grid">
+    <div class="meta-field">
+      <label>Evaluator (name / code)</label>
+      <input type="text" id="f-eval" placeholder="Dr./Prof. ···"/>
+    </div>
+    <div class="meta-field">
+      <label>Date</label>
+      <input type="date" id="f-date"/>
+    </div>
+    <div class="meta-field">
+      <label>Session no.</label>
+      <input type="text" id="f-sessio" placeholder="Session 1"/>
+    </div>
+    <div class="meta-field">
+      <label>Institution</label>
+      <input type="text" id="f-inst" placeholder="Hospital / centre"/>
+    </div>
+    <div class="meta-field">
+      <label>Specialty or Role</label>
+      <input type="text" id="f-spec" placeholder="Breast surgery, etc."/>
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="legend-pip lp1">1</div>Very poor / strongly disagree</div>
+    <div class="legend-item"><div class="legend-pip lp2">2</div>Poor / disagree</div>
+    <div class="legend-item"><div class="legend-pip lp3">3</div>Acceptable / neutral</div>
+    <div class="legend-item"><div class="legend-pip lp4">4</div>Good / agree</div>
+    <div class="legend-item"><div class="legend-pip lp5">5</div>Excellent / strongly agree</div>
+  </div>
+
+  <div id="questions-root"></div>
+
+  <div class="comments-block">
+    <h3>Comments and observations</h3>
+    <div class="optional-tag">Optional — free text</div>
+    <textarea id="f-comments" placeholder="Please note any observations, improvement suggestions, technical incidents, or aspects not covered by the questions above…"></textarea>
+  </div>
+
+</div>
+
+<div class="summary-bar">
+  <div class="sum-item">
+    <span class="sum-label">Answered</span>
+    <span class="sum-val" id="s-count">0 / 20</span>
+  </div>
+  <div class="sum-item">
+    <span class="sum-label">Total score</span>
+    <span class="sum-val" id="s-total">—</span>
+  </div>
+  <div class="sum-item">
+    <span class="sum-label">Mean</span>
+    <span class="sum-val" id="s-mean">—</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="sum-label" style="margin-bottom:4px">Progress</div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="prog"></div></div>
+  </div>
+  <div class="btn-export">
+    <button class="btn btn-secondary" onclick="window.print()">Print / PDF</button>
+    <button class="btn btn-primary" onclick="exportCSV()">Export CSV</button>
+  </div>
+</div>
+
+<script>
+const CATEGORIES = [
+  {
+    id: 'A', badge: 'badge-a',
+    label: 'A · Overlay Quality',
+    qs: [
+      'The registration between the digital model and the phantom is stable enough for clinical use.',
+      'Depth perception of nodes is sufficient for surgical planning.',
+    ]
+  },
+  {
+    id: 'B', badge: 'badge-b',
+    label: 'B · Visualisation and Perception',
+    qs: [
+      'The 3D perception is sufficient to distinguish anatomical structures.',
+      'The holographic rendering does not generate visual confusion with the physical environment.',
+    ]
+  },
+  {
+    id: 'C', badge: 'badge-c',
+    label: 'C · Clinical Utility',
+    qs: [
+      'The information displayed is relevant for preoperative planning of breast surgery.',
+      'The AR system provides added value compared to conventional visualisation methods (CT/MRI/SPECT).',
+      'I would trust this tool as decision support in a surgical setting (with additional validation).',
+    ]
+  },
+  {
+    id: 'D', badge: 'badge-d',
+    label: 'D · Usability and Ergonomics',
+    qs: [
+      'The HoloLens 2 device is comfortable to wear during the evaluation session.',
+      'The control interface (gestures) and the interaction with the system is intuitive and does not require extensive training.',
+      'The setup and calibration time is acceptable for a clinical environment.',
+      'The overall workflow (preparation → visualisation → assessment) is efficient.',
+    ]
+  },
+  {
+    id: 'E', badge: 'badge-e',
+    label: 'E · Safety and Clinical Confidence',
+    qs: [
+      'The tool does not introduce distracting elements that could compromise procedural safety.',
+    ]
+  },
+];
+
+const scores = {};
+let totalQ = 0;
+
+function build() {
+  const root = document.getElementById('questions-root');
+  let qi = 1;
+  CATEGORIES.forEach(cat => {
+    const block = document.createElement('div');
+    block.className = 'cat-block';
+    block.innerHTML = `<div class="cat-title"><div class="cat-badge ${cat.badge}">${cat.id}</div><h2>${cat.label}</h2></div>`;
+    cat.qs.forEach(q => {
+      const key = `q${qi}`;
+      scores[key] = null;
+      const row = document.createElement('div');
+      row.className = 'q-row';
+      row.innerHTML = `
+        <div class="q-num">${qi}</div>
+        <div class="q-text">${q}</div>
+        <div class="score-group" id="sg-${key}">
+          ${[1,2,3,4,5].map(v => `<button class="score-btn" onclick="setScore('${key}',${v},this)">${v}</button>`).join('')}
+        </div>`;
+      block.appendChild(row);
+      qi++;
+    });
+    root.appendChild(block);
+  });
+  totalQ = qi - 1;
+  document.getElementById('s-count').textContent = `0 / ${totalQ}`;
+}
+
+function setScore(key, val, btn) {
+  scores[key] = val;
+  const sg = document.getElementById(`sg-${key}`);
+  sg.querySelectorAll('.score-btn').forEach((b, i) => {
+    b.className = 'score-btn';
+    if (i + 1 === val) b.classList.add(`sel-${val}`);
+  });
+  updateSummary();
+}
+
+function updateSummary() {
+  const vals = Object.values(scores).filter(v => v !== null);
+  const n = vals.length;
+  document.getElementById('s-count').textContent = `${n} / ${totalQ}`;
+  document.getElementById('prog').style.width = `${Math.round(n / totalQ * 100)}%`;
+  if (n === 0) {
+    document.getElementById('s-total').textContent = '—';
+    document.getElementById('s-mean').textContent = '—';
+  } else {
+    const total = vals.reduce((a, b) => a + b, 0);
+    document.getElementById('s-total').textContent = `${total} / ${totalQ * 5}`;
+    document.getElementById('s-mean').textContent = (total / n).toFixed(2);
+  }
+}
+
+function exportCSV() {
+  const gv = id => (document.getElementById(id).value || '').replace(/"/g,'""');
+  const meta = `"${gv('f-eval')}","${gv('f-date')}","${gv('f-sessio')}","${gv('f-device')}","${gv('f-inst')}","${gv('f-spec')}"`;
+  const rows = ['Evaluator,Date,Session,Device,Institution,Specialty,Question_no,Category,Question,Score'];
+  let qi = 1;
+  CATEGORIES.forEach(cat => {
+    cat.qs.forEach(q => {
+      const s = scores[`q${qi}`] !== null ? scores[`q${qi}`] : '';
+      rows.push(`${meta},${qi},"${cat.id}","${q.replace(/"/g,'""')}",${s}`);
+      qi++;
+    });
+  });
+  rows.push('');
+  rows.push(`"COMMENTS","${gv('f-comments')}"`);
+  const blob = new Blob(['\uFEFF' + rows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = document.getElementById('f-date').value || 'no-date';
+  a.href = url; a.download = `clinical_validation_hololens2_${date}.csv`;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+build();
+document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>
